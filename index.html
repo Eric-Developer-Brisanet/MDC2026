@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unibrisa | Automação com Python</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --unibrisa-orange: #FF7E05; --unibrisa-blue: #2242D4; 
+            --unibrisa-gray: #888888; --unibrisa-ice: #E8E8E8; 
+            --unibrisa-navy: #0B316D;
+        }
+
+        /* Sistema de Cores Dinâmico */
+        body.light-mode { background-color: #FFFFFF; color: var(--unibrisa-blue); }
+        body.dark-mode { background-color: #05070a; color: #FFFFFF; }
+
+        /* Ajuste de Texto para Modo Escuro */
+        body.dark-mode .text-gray-content { color: #cbd5e1; }
+        body.dark-mode .bg-section-alt { background-color: #0f172a; }
+        body.light-mode .bg-section-alt { background-color: #f8fafc; }
+
+        .btn-unibrisa { background-color: var(--unibrisa-orange); color: white; font-weight: bold; transition: 0.3s; border: none; cursor: pointer; }
+        .btn-unibrisa:hover { background-color: #e66e00; transform: scale(1.02); }
+        
+        .step-locked { filter: grayscale(1); opacity: 0.2; pointer-events: none; transition: 0.5s; }
+        .code-box { background: #010409; border-left: 4px solid var(--unibrisa-orange); padding: 1.5rem; border-radius: 0.5rem; color: #d1d5db; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto; }
+        
+        /* Quiz */
+        .quiz-option { border: 2px solid #ddd; transition: 0.2s; cursor: pointer; padding: 1rem; border-radius: 0.75rem; background: white; color: #333; }
+        body.dark-mode .quiz-option { background: #1e293b; color: white; border-color: #334155; }
+        .quiz-option.correct { border-color: #10b981 !important; background: #ecfdf5 !important; color: #065f46 !important; }
+        .quiz-option.wrong { border-color: #ef4444 !important; background: #fef2f2 !important; color: #991b1b !important; }
+        .quiz-option.disabled { pointer-events: none; }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        header { z-index: 100; }
+    </style>
+</head>
+<body class="light-mode overflow-x-hidden">
+
+    <header class="flex justify-between items-center p-4 md:p-6 bg-white dark:bg-slate-900 sticky top-0 border-b border-gray-100 dark:border-slate-800 shadow-sm">
+        <img src="/IMAGENS/image-removebg-preview (1).png" alt="Unibrisa" class="h-8 md:h-12">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleDarkMode()" class="text-[10px] font-bold uppercase p-2 bg-gray-100 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">🌓 Alternar Modo</button>
+            <h2 class="hidden sm:block text-[10px] font-extrabold uppercase tracking-widest text-[#888888]">Inovação Brisa</h2>
+        </div>
+        <img src="/IMAGENS/image-removebg-preview (2).png" alt="Python" class="h-8 md:h-12">
+    </header>
+
+    <section id="quiz-section" class="max-w-4xl mx-auto py-12 px-4 md:px-6">
+        <div class="bg-section-alt border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-[2rem] p-8 md:p-12 text-center shadow-sm">
+            <span class="text-[#FF7E05] font-bold text-xs uppercase tracking-tighter">Nivelamento de conhecimento</span>
+            <h2 class="text-2xl md:text-3xl font-bold mt-2 mb-6 flex items-center justify-center gap-3">
+    Desafio de conhecimento Python
+    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" 
+         alt="Python Logo" 
+         class="h-8 w-8 md:h-10 md:w-10 object-contain">
+</h2>
+            
+            <div id="quiz-container">
+                <div class="mb-4 flex justify-between items-center text-[10px] font-bold text-[#888888] uppercase tracking-widest">
+                    <span id="q-count">Pergunta 1 de 5</span>
+                    <span id="q-score-display">Acertos: 0</span>
+                </div>
+                <div id="question-box" class="text-left bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-inner border border-gray-100 dark:border-slate-700">
+                    <p id="question-text" class="font-bold mb-6 text-lg"></p>
+                    <div id="options-container" class="grid grid-cols-1 gap-3"></div>
+                </div>
+                <button id="next-q-btn" onclick="goToNextQuestion()" class="btn-unibrisa px-8 py-3 rounded-lg mt-8 hidden w-full md:w-auto">PRÓXIMA PERGUNTA</button>
+            </div>
+
+            <div id="quiz-result" class="hidden animate-bounce-slow">
+                <div class="mb-6"><span class="text-6xl" id="res-emoji"></span></div>
+                <h3 class="text-4xl font-extrabold mb-2" id="level-title"></h3>
+                <p class="text-2xl font-bold text-[#FF7E05] mb-4" id="percentage-text"></p>
+                <p id="level-desc" class="text-gray-content mb-8 max-w-md mx-auto"></p>
+                <button onclick="unlockModule(0)" class="btn-unibrisa px-12 py-4 rounded-full shadow-lg">INICIAR TREINAMENTO</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="modulo0" class="max-w-6xl mx-auto py-20 px-6 step-locked">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6">Por que <span class="text-[#FF7E05]">Python?</span></h1>
+            <p class="text-xl text-gray-content max-w-3xl mx-auto">
+                No padrão Brisanet, eficiência é regra. O Python elimina erros manuais e escala processos que o Excel não suporta.
+            </p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6 text-left">
+                <h3 class="text-3xl font-bold">Vantagens Estratégicas</h3>
+                <p class="text-gray-content italic">"O tempo que você gasta copiando e colando é tempo perdido de análise."</p>
+                <ul class="space-y-4">
+                    <li class="flex items-start gap-3"><span class="text-[#FF7E05]">✔</span> <span><b>Processamento em Lote:</b> Divida 30k+ linhas em segundos.</span></li>
+                    <li class="flex items-start gap-3"><span class="text-[#FF7E05]">✔</span> <span><b>Auditabilidade:</b> Todo passo é registrado via código.</span></li>
+                </ul>
+                <button onclick="unlockModule(1)" class="btn-unibrisa px-10 py-4 rounded-full">ESTUDAR SETUP E PIP</button>
+            </div>
+            <div class="bg-section-alt p-8 rounded-3xl text-center border dark:border-slate-800 shadow-sm">
+                <p class="text-[10px] font-bold uppercase text-[#888888] tracking-widest mb-6">Diferença de Performance</p>
+                <div class="space-y-6">
+                    <div class="text-left text-xs font-bold text-red-500">MANUAL (RISCO DE ERRO: 95%)</div>
+                    <div class="w-full bg-gray-200 dark:bg-slate-700 h-2 rounded-full"><div class="bg-red-500 h-2 rounded-full" style="width: 95%"></div></div>
+                    <div class="text-left text-xs font-bold text-[#FF7E05]">PYTHON (RISCO DE ERRO: 0%)</div>
+                    <div class="w-full bg-gray-200 dark:bg-slate-700 h-2 rounded-full"><div class="bg-[#FF7E05] h-2 rounded-full" style="width: 5%"></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="modulo1" class="bg-[#0B316D] py-24 px-6 step-locked">
+        <div class="max-w-5xl mx-auto text-left">
+            <span class="text-[#FF7E05] font-bold text-sm uppercase tracking-widest">Módulo 01: Setup</span>
+            <h2 class="text-5xl font-bold mt-2 mb-10 text-white">Configuração de Ambiente</h2>
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="space-y-8">
+                    <p class="text-white/80 leading-relaxed">O <b>PIP</b> é o seu instalador oficial. Ele permite baixar bibliotecas profissionais como o Pandas com um único comando.</p>
+                    <div class="code-box">
+                        <p class="text-[#FF7E05] text-[10px] font-bold mb-2 uppercase"># No Terminal / PowerShell</p>
+                        <code>pip install pandas openpyxl</code>
+                    </div>
+                </div>
+                <div class="bg-white/5 p-8 rounded-2xl border border-white/10 space-y-4">
+                    <h4 class="text-[#FF7E05] font-bold uppercase text-xs mb-2">Bibliotecas Essenciais:</h4>
+                    <p class="text-sm"><b>Pandas:</b> O motor de DataFrames para manipular tabelas.</p>
+                    <p class="text-sm"><b>OpenPyXL:</b> O tradutor que escreve arquivos Excel nativos.</p>
+                </div>
+            </div>
+            <button onclick="unlockModule(2)" class="mt-12 bg-white text-[#0B316D] px-12 py-4 rounded-full font-extrabold shadow-xl">APRENDER SLICING ➔</button>
+        </div>
+    </section>
+
+    <section id="modulo2" class="max-w-5xl mx-auto py-24 px-6 step-locked">
+        <span class="text-[#888888] font-bold text-sm uppercase tracking-widest">Módulo 02</span>
+        <h2 class="text-5xl font-bold mt-2 mb-10 text-left">Lógica de Fatiamento (.iloc)</h2>
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div class="text-left space-y-6">
+                <p class="text-gray-content">O fatiamento acontece através do método <code>.iloc[]</code>. Ele seleciona blocos de dados sem carregar todo o arquivo na memória RAM.</p>
+                <div class="bg-orange-50 dark:bg-slate-900 p-6 rounded-2xl border-l-4 border-[#FF7E05]">
+                    <h4 class="text-[#FF7E05] font-bold mb-4 uppercase text-xs text-left">Formatos de Exportação:</h4>
+                    <ul class="text-xs space-y-2">
+                        <li><b>CSV:</b> Ideal para importação em bancos de dados.</li>
+                        <li><b>XLSX:</b> Padrão corporativo para relatórios.</li>
+                        <li><b>TXT:</b> Formato bruto tabulado para sistemas legados.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="code-box">
+                <p class="text-[#FF7E05] text-[10px] mb-2 font-bold"># Estrutura de Proteção</p>
+                <pre class="text-xs">
+try:
+    lote = df.iloc[i : i+5000]
+    lote.to_csv(nome)
+except Exception as e:
+    print(f"Erro detectado: {e}")
+                </pre>
+            </div>
+        </div>
+        <button onclick="unlockModule(3)" class="mt-12 btn-unibrisa px-12 py-4 rounded-full shadow-lg">ABRIR LABORATÓRIO ➔</button>
+    </section>
+
+    <section id="modulo3" class="max-w-5xl mx-auto py-24 px-6 step-locked">
+        <div class="border-4 border-[#FF7E05] p-8 md:p-12 rounded-[3rem] shadow-2xl bg-white dark:bg-slate-900">
+            <h2 class="text-3xl md:text-4xl font-extrabold mb-8 text-center">Unibrisa Automation Lab</h2>
+            <div id="dropzone" class="border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-3xl p-12 text-center hover:border-[#FF7E05] cursor-pointer bg-gray-50 dark:bg-slate-800" onclick="document.getElementById('fileInput').click()">
+                <p class="font-bold">📁 Clique ou arraste sua base (CSV ou XLSX)</p>
+                <input type="file" id="fileInput" class="hidden" accept=".csv, .xlsx" onchange="handleFileSelection(event)">
+            </div>
+
+            <div id="lab-controls" class="mt-10 hidden space-y-8">
+                <div class="p-6 bg-section-alt rounded-2xl text-left border dark:border-slate-800">
+                    <p class="text-xs font-bold mb-4 uppercase text-[#888888]">Quais colunas manter nos lotes?</p>
+                    <div id="col-list" class="flex flex-wrap gap-3"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <input type="number" id="batchSize" value="5000" class="rounded-xl p-4 border dark:bg-slate-900 font-bold dark:border-slate-700">
+                    <select id="format" class="rounded-xl p-4 border dark:bg-slate-900 font-bold dark:border-slate-700">
+                        <option value="csv">CSV</option>
+                        <option value="xlsx">XLSX</option>
+                        <option value="txt">TXT</option>
+                    </select>
+                    <button onclick="processFilesNow()" class="btn-unibrisa w-full py-4 rounded-xl shadow-lg">FATIAR AGORA</button>
+                </div>
+                <div id="terminal-console" class="bg-black p-6 rounded-2xl mono text-[10px] text-emerald-400 h-40 overflow-y-auto text-left shadow-2xl"></div>
+            </div>
+        </div>
+        <div id="action-buttons-area" class="text-center mt-12 hidden flex flex-wrap justify-center gap-4">
+            <button onclick="downloadOfficialCertificate()" class="btn-unibrisa px-8 py-4 rounded-full bg-emerald-600">🎓 BAIXAR CERTIFICADO</button>
+            <button onclick="unlockModule(4)" class="btn-unibrisa px-8 py-4 rounded-full bg-slate-700">📄 VER CÓDIGO COMPLETO</button>
+        </div>
+    </section>
+
+    <section id="modulo4" class="bg-[#0B316D] py-24 px-6 step-locked">
+        <div class="max-w-5xl mx-auto text-left">
+            <h2 class="text-5xl font-bold mb-8 text-white">Script de Produção Robusto</h2>
+            <div class="code-box">
+                <pre id="python-script-text">
+import pandas as pd
+import zipfile
+import io
+
+# Template Unibrisa
+def brisa_fatiador_v1(caminho, linhas=5000):
+    try:
+        # Leitura Inteligente
+        df = pd.read_excel(caminho) if caminho.endswith('.xlsx') else pd.read_csv(caminho)
+        
+        for i in range(0, len(df), linhas):
+            lote = df.iloc[i : i + linhas]
+            # Exportação de alta performance
+            lote.to_csv(f"lote_unibrisa_{i//linhas + 1}.csv", index=False)
+            print(f"Lote {i//linhas + 1} concluído.")
+            
+    except Exception as e:
+        print(f"Erro fatal: {e}")
+
+if __name__ == "__main__":
+    brisa_fatiador_v1("seu_arquivo.xlsx")
+                </pre>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-20 border-t border-gray-100 dark:border-slate-800 text-center px-4">
+        <p class="text-[10px] font-extrabold uppercase tracking-widest text-[#888888] mb-4">© 2026 BRISANET - Todos os Direitos Reservados</p>
+        <p class="text-[8px] text-[#888888]/60 uppercase tracking-tighter leading-relaxed max-w-2xl mx-auto">
+            AVISO LEGAL: Este conteúdo é propriedade intelectual exclusiva da BRISANET SERVIÇOS DE TELECOMUNICAÇÕES S.A. É proibida a reprodução, alteração, venda ou distribuição total ou parcial sem autorização prévia por escrito. Programa Multiplicadores do conhecimento 2026.
+        </p>
+    </footer>
+
+    <script>
+        // MODO ESCURO CORRIGIDO
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.body.classList.toggle('light-mode');
+        }
+
+        // QUIZ SYSTEM (5 PERGUNTAS COM ACERTOS REAIS)
+        const quizData = [
+            { q: "Qual comando PIP instala bibliotecas?", o: ["pip install", "python get", "add-lib", "install-pkg"], a: 0 },
+            { q: "Estrutura de tabela no Pandas?", o: ["ExcelBox", "DataFrame", "DataGrid", "TableList"], a: 1 },
+            { q: "Método de fatiamento (slicing)?", o: ["split()", "iloc[]", "divide()", "cut()"], a: 1 },
+            { q: "Extensão padrão Excel moderno?", o: [".xls", ".xlsx", ".csv", ".xlsm"], a: 1 },
+            { q: "Vantagem do Python sobre Excel?", o: ["Mais lento", "Dificulta auditoria", "Escalabilidade e Automação", "Manual"], a: 2 }
+        ];
+        let currQ = 0, score = 0, rawData = [];
+
+        function initQuiz() {
+            const q = quizData[currQ];
+            document.getElementById('q-count').innerText = `Pergunta ${currQ+1} de 5`;
+            document.getElementById('question-text').innerText = q.q;
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            q.o.forEach((opt, idx) => {
+                container.innerHTML += `<div class="quiz-option" id="qopt-${idx}" onclick="validateAnswer(${idx})">${opt}</div>`;
+            });
+        }
+
+        function validateAnswer(idx) {
+            const correct = quizData[currQ].a;
+            document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+            if(idx === correct) {
+                document.getElementById(`qopt-${idx}`).classList.add('correct');
+                score++;
+                document.getElementById('q-score-display').innerText = `Acertos: ${score}`;
+            } else {
+                document.getElementById(`qopt-${idx}`).classList.add('wrong');
+                document.getElementById(`qopt-${correct}`).classList.add('correct');
+            }
+            document.getElementById('next-q-btn').classList.remove('hidden');
+        }
+
+        function goToNextQuestion() {
+            currQ++; document.getElementById('next-q-btn').classList.add('hidden');
+            if(currQ < 5) initQuiz(); else finishQuiz();
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            const perc = (score/5)*100;
+            document.getElementById('percentage-text').innerText = `${perc}% de Acerto`;
+            document.getElementById('level-title').innerText = perc >= 80 ? "Nível: Sênior 🏆" : "Nível: Júnior 👶";
+            document.getElementById('res-emoji').innerText = perc >= 80 ? "🔥" : "📚";
+        }
+
+        function unlockModule(id) {
+            document.getElementById(`modulo${id}`).classList.remove('step-locked');
+            window.scrollTo({ top: document.getElementById(`modulo${id}`).offsetTop - 80, behavior: 'smooth' });
+        }
+
+        // LABORATÓRIO E FILTROS
+        function handleFileSelection(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const workbook = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                rawData = XLSX.utils.sheet_to_json(sheet);
+                const cols = Object.keys(rawData[0]);
+                const list = document.getElementById('col-list');
+                list.innerHTML = "";
+                cols.forEach(c => {
+                    list.innerHTML += `<label class="flex items-center gap-2 bg-white dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] font-bold border dark:border-slate-600"><input type="checkbox" value="${c}" checked class="accent-[#FF7E05]"> ${c}</label>`;
+                });
+                document.getElementById('lab-controls').classList.remove('hidden');
+                logTerminal(`Arquivo "${file.name}" carregado. ${rawData.length} registros.`);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function logTerminal(msg) {
+            const t = document.getElementById('terminal-console');
+            t.innerHTML += `<p class="mb-1">> ${msg}</p>`;
+            t.scrollTop = t.scrollHeight;
+        }
+
+        async function processFilesNow() {
+            const batch = parseInt(document.getElementById('batchSize').value);
+            const fmt = document.getElementById('format').value;
+            const selCols = Array.from(document.querySelectorAll('#col-list input:checked')).map(i => i.value);
+            const zip = new JSZip();
+
+            logTerminal(`Fatiando em lotes de ${batch}...`);
+            for (let i = 0; i < rawData.length; i += batch) {
+                const chunk = rawData.slice(i, i + batch).map(row => {
+                    let filtered = {}; selCols.forEach(c => filtered[c] = row[c]); return filtered;
+                });
+                const ws = XLSX.utils.json_to_sheet(chunk);
+                zip.file(`lote_unibrisa_${Math.floor(i/batch)+1}.${fmt}`, XLSX.utils.sheet_to_csv(ws));
+                logTerminal(`Lote ${Math.floor(i/batch)+1} processado.`);
+            }
+            saveAs(await zip.generateAsync({type: 'blob'}), "unibrisa_automacao.zip");
+            document.getElementById('action-buttons-area').classList.remove('hidden');
+            logTerminal("Sucesso total! Automação concluída.");
+        }
+
+        function downloadOfficialCertificate() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.setFillColor(11, 49, 109); doc.rect(0, 0, 297, 210, 'F');
+            doc.setDrawColor(255, 126, 5); doc.setLineWidth(5); doc.rect(10, 10, 277, 190);
+            doc.setTextColor(255, 126, 5); doc.setFontSize(40); doc.text("CERTIFICADO UNIBRISA", 148, 60, null, null, 'center');
+            doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.text("Conclusão do Treinamento de Automação Python", 148, 100, null, null, 'center');
+            doc.setFontSize(12); doc.text(`Emitido em: ${new Date().toLocaleDateString()} | Unibrisa Corporate`, 148, 170, null, null, 'center');
+            doc.save("certificado_unibrisa.pdf");
+        }
+
+        initQuiz();
+    </script>
+</body>
+</html>
