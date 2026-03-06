@@ -163,7 +163,7 @@ lote.to_csv(f"output_{i}.csv")
 
         <section id="mod3" class="py-32 px-6 step-locked transition-all duration-1000">
             <div class="max-w-5xl mx-auto glass p-10 md:p-20 rounded-[4rem] border-t-8 border-[#FF7E05] text-center shadow-3xl">
-                <h2 class="text-4xl font-black mb-8">FATIADOR DE DAODS 🦾</h2>
+                <h2 class="text-4xl font-black mb-8">FATIADOR DE DADOS 🦾</h2>
                 <div id="dropzone" class="border-4 border-dashed border-white/10 rounded-[2.5rem] p-20 hover:border-[#FF7E05] cursor-pointer bg-black/10 transition-all group" onclick="document.getElementById('file-in').click()">
                     <p class="text-4xl mb-4 group-hover:scale-110 transition-transform">📂</p>
                     <p class="font-bold opacity-40 uppercase tracking-widest">Arraste seu arquivo CSV ou XLSX</p>
@@ -178,10 +178,10 @@ lote.to_csv(f"output_{i}.csv")
                             <input type="number" id="b-size" value="5000" class="w-full bg-transparent border-b-2 border-white/10 p-4 text-2xl font-black text-[#FF7E05]">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black opacity-40">Extensão</label>
-                            <select id="b-fmt" class="w-full bg-transparent border-b-2 border-white/10 p-4 text-2xl font-black outline-none">
-                                <option value="csv">CSV (SISTEMAS)</option>
-                                <option value="xlsx">XLSX (AUDITORIA)</option>
+                            <label class="text-[10px] font-black opacity-40 uppercase tracking-widest">Extensão</label>
+                            <select id="b-fmt" class="w-full bg-transparent border-b-2 border-white/10 p-4 text-2xl font-black outline-none transition-all cursor-pointer">
+                                <option value="csv" class="bg-slate-800 text-white">CSV (SISTEMAS)</option>
+                                <option value="xlsx" class="bg-slate-800 text-white">XLSX (AUDITORIA)</option>
                             </select>
                         </div>
                         <div class="flex items-end">
