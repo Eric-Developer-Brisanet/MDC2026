@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DESAFIO MDC | AUTOMAÇÃO PYTHON</title>
+    <title>Unibrisa | Missão MDC 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -12,199 +12,217 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --orange: #FF7E05; --blue: #2242D4; --navy: #0B316D; --dark: #020617;
-        }
-        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        :root { --orange: #FF7E05; --blue: #2242D4; --navy: #0B316D; --dark: #020617; }
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; transition: 0.5s; }
         body.dark-mode { background: var(--dark); color: #f1f5f9; }
         body.light-mode { background: #f8fafc; color: var(--navy); }
 
-        /* HUD & Glassmorphism */
         .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .light-mode .glass { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(0, 0, 0, 0.05); }
 
-        /* Botões Premium */
         .btn-unibrisa { 
-            background: linear-gradient(135deg, var(--orange), #ff9d42);
-            color: white; font-weight: 800; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 20px -10px var(--orange);
+            background: linear-gradient(135deg, var(--orange), #ff9d42); color: white; font-weight: 800; 
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 20px -10px var(--orange);
         }
         .btn-unibrisa:hover { transform: translateY(-3px); box-shadow: 0 20px 30px -10px var(--orange); }
         
-        /* Bloqueio de Progressão */
-        .step-locked { filter: blur(10px) grayscale(1); opacity: 0.2; pointer-events: none; transition: 1s; }
+        .step-locked { filter: blur(12px) grayscale(1); opacity: 0.1; pointer-events: none; transition: 1.2s; }
 
-        /* Floating HUD Notification */
-        #hud-msg { position: fixed; top: 100px; right: -400px; transition: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); z-index: 1000; }
+        /* HUD Premium */
+        #hud-msg { position: fixed; top: 100px; right: -450px; transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1); z-index: 1000; }
         #hud-msg.show { right: 20px; }
 
-        /* Puzzle System */
-        .slot { border: 2px dashed rgba(255,255,255,0.2); border-radius: 1rem; min-height: 70px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); transition: 0.3s; }
-        .piece { background: var(--orange); color: white; padding: 12px; border-radius: 0.75rem; cursor: grab; font-size: 11px; font-weight: bold; width: 90%; text-align: center; }
+        /* Puzzle Fix */
+        .slot { border: 2px dashed rgba(255,255,255,0.1); border-radius: 1.5rem; min-height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); transition: 0.3s; position: relative; }
+        .slot::before { content: attr(data-placeholder); position: absolute; opacity: 0.2; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .piece { background: var(--orange); color: white; padding: 14px; border-radius: 1rem; cursor: grab; font-size: 11px; font-weight: 900; width: 92%; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
-        /* Animations */
-        @keyframes slideIn { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
-        .anim-slide { animation: slideIn 0.8s ease-out forwards; }
+        /* Select Contrast Fix */
+        select option { background-color: #0f172a; color: white; }
+        .light-mode select option { background-color: white; color: #0f172a; }
+
+        @keyframes slide { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        .anim { animation: slide 0.6s ease-out forwards; }
+
+        /* Estilo para listas densas */
+        .content-card { padding: 2rem; border-radius: 2rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-<body class="dark-mode overflow-x-hidden">
+<body class="dark-mode">
 
-    <div id="hud-msg" class="glass p-6 rounded-2xl shadow-2xl border-l-8 border-[#FF7E05] flex items-center gap-4 max-w-sm">
-        <div id="hud-icon" class="text-3xl">🚀</div>
+    <div id="hud-msg" class="glass p-6 rounded-[2rem] shadow-2xl border-l-8 border-[#FF7E05] flex items-center gap-5 max-w-sm">
+        <div id="hud-icon" class="text-4xl">⚡</div>
         <div>
-            <h4 id="hud-title" class="font-black text-sm uppercase">Notificação</h4>
-            <p id="hud-text" class="text-xs opacity-70 italic"></p>
+            <h4 id="hud-title" class="font-black text-xs uppercase tracking-widest text-[#FF7E05]">SISTEMA</h4>
+            <p id="hud-text" class="text-sm font-semibold opacity-80 leading-tight"></p>
         </div>
     </div>
 
-    <nav class="fixed w-full top-0 z-50 glass px-6 py-4 flex justify-between items-center shadow-lg">
-        <img src="IMAGENS/image-removebg-preview (1).png" alt="Unibrisa" class="h-10 md:h-12">
-        <div class="flex items-center gap-4">
-            <div class="hidden md:flex gap-4">
-                <span id="badge-logic" class="opacity-20 transition-all duration-700">🧩</span>
-                <span id="badge-data" class="opacity-20 transition-all duration-700">📊</span>
-                <span id="badge-pro" class="opacity-20 transition-all duration-700">🏆</span>
+    <nav class="fixed w-full top-0 z-[100] glass px-8 py-5 flex justify-between items-center">
+        <img src="IMAGENS/image-removebg-preview (1).png" alt="Unibrisa" class="h-10">
+        <div class="flex items-center gap-8">
+            <div class="hidden md:flex gap-6 text-xl">
+                <span id="b1" class="opacity-10 grayscale transition-all duration-1000">🧠</span>
+                <span id="b2" class="opacity-10 grayscale transition-all duration-1000">📊</span>
+                <span id="b3" class="opacity-10 grayscale transition-all duration-1000">🏆</span>
             </div>
-            <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition">🌓</button>
+            <button onclick="toggleTheme()" class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition">🌓</button>
         </div>
-        <img src="IMAGENS/image-removebg-preview (2).png" alt="Brisanet" class="h-10 md:h-12">
+        <img src="IMAGENS/image-removebg-preview (2).png" alt="Brisanet" class="h-10">
     </nav>
 
-    <section id="hero" class="min-h-screen flex items-center justify-center p-6 text-center pt-20">
-        <div class="max-w-4xl glass p-10 md:p-20 rounded-[3.5rem] anim-slide">
-            <h1 class="text-5xl md:text-8xl font-black mb-6 tracking-tighter">PYTHON <span class="text-[#FF7E05]">PARA AUTOMAÇÃO</span></h1>
-            <p class="text-lg opacity-60 mb-12 uppercase tracking-widest font-bold">AUTOMATIZANDO DADOS MASSIVOS COM PYTHON</p>
-            <div class="space-y-4">
-                <input type="text" id="user-name" placeholder="INSIRA SEU NOME COMPLETO" 
-                       class="w-full bg-transparent border-b-4 border-white/10 p-4 text-2xl font-black text-center outline-none focus:border-[#FF7E05] transition-all uppercase">
-                <p class="text-[10px] text-[#888888] font-bold">INSIRA O NOME PARA A EMISSÃO DO CERTIFICADO OFICIAL</p>
+    <section id="hero" class="min-h-screen flex items-center justify-center p-6 text-center">
+        <div class="max-w-4xl glass p-12 md:p-24 rounded-[4rem] anim">
+            <h1 class="text-6xl md:text-9xl font-black mb-8 tracking-tighter">Python <span class="text-[#FF7E05]">Para Sustentação</span></h1>
+            <p class="text-xl opacity-50 mb-14 uppercase tracking-[0.3em] font-bold">AUTOMATIZANDO TAREFAS REPETITIVAS</p>
+            <div class="relative group">
+                <input type="text" id="user-name" placeholder="NOME COMPLETO" 
+                       class="w-full bg-transparent border-b-4 border-white/10 p-5 text-3xl font-black text-center outline-none focus:border-[#FF7E05] transition-all uppercase tracking-widest">
+                <div class="mt-4 text-[10px] font-black opacity-30 uppercase">Registro obrigatório para certificação oficial</div>
             </div>
-            <button onclick="initTraining()" class="btn-unibrisa px-20 py-6 rounded-full text-xl mt-12">INICIAR TREINAMENTO ➔</button>
+            <button onclick="startMission()" class="btn-unibrisa px-20 py-7 rounded-full text-xl mt-16 uppercase tracking-widest">Acessar Trilha ➔</button>
         </div>
     </section>
 
-    <section id="quiz-area" class="py-24 px-6 hidden">
-        <div class="max-w-4xl mx-auto glass p-10 md:p-16 rounded-[3rem] text-center">
-            <div class="mb-10 flex justify-between items-center text-[10px] font-bold opacity-40 uppercase tracking-widest">
-                <span id="q-label">Questão 1 de 5</span>
-                <span id="q-score">Acertos: 0</span>
+    <section id="quiz-area" class="py-32 px-6 hidden">
+        <div class="max-w-4xl mx-auto glass p-12 md:p-20 rounded-[3.5rem] text-center border-t-8 border-[#FF7E05]">
+            <div class="mb-12 flex justify-between items-center text-[10px] font-black opacity-40 tracking-[0.2em]">
+                <span id="q-idx">FASE 01 / 05</span>
+                <span id="q-score">PONTUAÇÃO: 00</span>
             </div>
-            <h3 id="q-text" class="text-2xl font-bold mb-10 leading-tight"></h3>
-            <div id="q-options" class="grid gap-4"></div>
-            <button id="q-next" onclick="nextQuestion()" class="btn-unibrisa px-12 py-4 rounded-xl mt-10 hidden shadow-xl">PRÓXIMA FASE ➔</button>
+            <h3 id="q-text" class="text-3xl font-black mb-12 leading-tight"></h3>
+            <div id="q-options" class="grid gap-5"></div>
+            <button id="q-next" onclick="nextQuestion()" class="btn-unibrisa px-16 py-5 rounded-2xl mt-14 hidden uppercase font-black">Próxima Fase ➔</button>
         </div>
     </section>
 
-    <div id="content-flow" class="hidden">
+    <div id="main-flow" class="hidden">
         
-        <section id="mod0" class="py-32 px-6">
-            <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-20 items-center">
-                <div class="space-y-8 text-left">
-                    <span class="text-[#FF7E05] font-black text-xs uppercase tracking-widest">Módulo Zero</span>
-                    <h2 class="text-5xl md:text-7xl font-black leading-none">Visão de <br><span class="text-[#FF7E05]">Dados.</span></h2>
-                    <p class="text-xl opacity-60 leading-relaxed">No ecossistema de analise de dados, o Python não é apenas código; é a espinha dorsal da nossa escalabilidade operacional. O erro humano é mitigado pela precisão do algoritmo.</p>
-                    <button onclick="unlock(1)" class="btn-unibrisa px-12 py-4 rounded-full">ESTUDAR SETUP PIP ➔</button>
-                </div>
-                <div class="bg-section-alt p-12 rounded-[3rem] border shadow-2xl">
-                    <div class="space-y-8">
-                        <div>
-                            <p class="text-[10px] font-bold mb-2">RISCO MANUAL (95%)</p>
-                            <div class="w-full bg-gray-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                                <div class="bg-red-500 h-full" style="width: 95%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold mb-2 text-[#FF7E05]">CONSUMO DE MEMORIA RAM COM PYTHON (0,1%)</p>
-                            <div class="w-full bg-gray-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                                <div class="bg-[#FF7E05] h-full" style="width: 5%"></div>
-                            </div>
-                        </div>
+        <section id="mod0" class="py-40 px-6">
+            <div class="max-w-6xl mx-auto text-left">
+                <span class="text-[#FF7E05] font-black text-xs tracking-widest uppercase">Módulo 01</span>
+                <h2 class="text-6xl md:text-8xl font-black leading-none mb-10">Arquitetura de <br><span class="text-[#FF7E05]">Dados.</span></h2>
+                
+                <div class="grid md:grid-cols-2 gap-10 mb-20">
+                    <div class="content-card">
+                        <h4 class="text-[#FF7E05] font-bold mb-4">A Crise do Excel</h4>
+                        <p class="opacity-70 leading-relaxed">Arquivos massivos no Excel causam o estouro da memória RAM. O Python resolve isso através do processamento em lotes (batch processing), permitindo que a Brisanet escale operações de milhares para milhões de registros sem lentidão.</p>
+                    </div>
+                    <div class="content-card">
+                        <h4 class="text-[#FF7E05] font-bold mb-4">ETL (Extract, Transform, Load)</h4>
+                        <p class="opacity-70 leading-relaxed">Nesta trilha, você aprenderá o pipeline profissional: extrair dados de bases brutos, transformar sua estrutura via Slicing e carregar o resultado em lotes auditáveis.</p>
                     </div>
                 </div>
+
+                <div class="space-y-6">
+                    <h4 class="text-2xl font-bold">Conceitos Chave:</h4>
+                    <ul class="list-disc ml-6 space-y-4 opacity-70">
+                        <li><b>Dataframes:</b> Estruturas tabulares em memória otimizadas para velocidade.</li>
+                        <li><b>Escalabilidade Vertical:</b> Otimização do uso de recursos locais para processamento massivo.</li>
+                        <li><b>Integridade Referencial:</b> Garantir que nenhum dado seja perdido durante o fatiamento.</li>
+                    </ul>
+                </div>
+                <button onclick="unlockMod(1)" class="btn-unibrisa px-14 py-6 rounded-full text-lg uppercase tracking-widest mt-16">Setup do Ambiente ➔</button>
             </div>
         </section>
 
-        <section id="mod1" class="py-32 px-6 bg-[#0B316D] step-locked transition-all duration-1000">
-            <div class="max-w-5xl mx-auto text-left">
-                <h2 class="text-5xl md:text-6xl font-black text-white mb-10">Módulo PIP & Ambientes</h2>
-                <div class="grid md:grid-cols-2 gap-16">
+        <section id="mod1" class="py-40 px-6 bg-[#0B316D] step-locked">
+            <div class="max-w-5xl mx-auto text-left text-white">
+                <h2 class="text-5xl md:text-6xl font-black mb-10">Instalação e PIP</h2>
+                <div class="grid md:grid-cols-2 gap-16 mb-16">
                     <div class="space-y-8">
-                        <p class="text-white/80 text-lg">O **PIP** é o gerenciador de pacotes que nos permite importar inteligência externa para dentro dos servidores Brisa.</p>
+                        <p class="text-white/80 text-lg leading-relaxed">O **PIP** (Pip Installs Packages) é o padrão ouro para gestão de bibliotecas. Sem ele, o Python é apenas uma linguagem; com ele, torna-se uma estação de trabalho industrial.</p>
                         <div class="glass p-8 rounded-2xl border-l-8 border-[#FF7E05] bg-black/40">
-                            <p class="text-[#FF7E05] font-mono text-xs mb-4"># Instalação Industrial</p>
                             <code class="text-emerald-400 font-mono">pip install pandas openpyxl</code>
                         </div>
                     </div>
-                    <div class="bg-white/5 p-10 rounded-3xl border border-white/10 text-white space-y-4">
-                        <p class="font-bold">✓ PANDAS: Manipulação de tabelas.</p>
-                        <p class="font-bold">✓ OPENPYXL: Motor de escrita .xlsx.</p>
+                    <div class="content-card bg-white/5 border-white/10">
+                        <h4 class="text-[#FF7E05] font-bold mb-4">Ecossistema Python:</h4>
+                        <p class="text-sm mb-4"><b>Pandas:</b> Biblioteca de código aberto que fornece estruturas de dados de alto desempenho.</p>
+                        <p class="text-sm"><b>OpenPyXL:</b> Componente especializado na tradução de binários XML do Excel para estruturas Python.</p>
                     </div>
                 </div>
-                <button onclick="unlock(2)" class="mt-16 bg-white text-[#0B316D] px-16 py-5 rounded-full font-black text-lg">APRENDER SLICING ➔</button>
+                <div class="space-y-4 mb-16">
+                    <h4 class="text-xl font-bold">Procedimento Técnico:</h4>
+                    <p class="opacity-70">1. Verificação da versão do Python (`python --version`).</p>
+                    <p class="opacity-70">2. Criação de Ambientes Virtuais (VENV) para isolar as dependências do projeto.</p>
+                    <p class="opacity-70">3. Instalação das dependências via PIP.</p>
+                </div>
+                <button onclick="unlockMod(2)" class="bg-white text-[#0B316D] px-16 py-5 rounded-full font-black text-lg">Dominar Lógica de Slicing ➔</button>
             </div>
         </section>
 
-        <section id="mod2" class="py-32 px-6 step-locked transition-all duration-1000">
-            <div class="max-w-5xl mx-auto text-center">
-                <h2 class="text-5xl font-black mb-10">Engenharia de <span class="text-[#FF7E05]">Slicing</span></h2>
-                <div class="grid md:grid-cols-2 gap-20 items-center text-left">
-                    <p class="text-xl opacity-60 leading-relaxed">O método <code>.iloc[]</code> é a ferramenta de precisão cirúrgica. Ele permite fatiar lotes massivos de 5.000+ linhas sem sobrecarregar a memória do sistema.</p>
-                    <div class="glass p-8 rounded-3xl border border-[#FF7E05]/20">
-                        <pre class="font-mono text-xs text-[#FF7E05] leading-loose">
-# Fatia Dinâmica
-lote = df.iloc[i : i + 5000]
-lote.to_csv(f"output_{i}.csv")
-                        </pre>
-                    </div>
-                </div>
-                <button onclick="unlock(3)" class="btn-unibrisa px-16 py-5 rounded-full mt-16 text-lg">ABRIR DATA LAB ➔</button>
-            </div>
-        </section>
-
-        <section id="mod3" class="py-32 px-6 step-locked transition-all duration-1000">
-            <div class="max-w-5xl mx-auto glass p-10 md:p-20 rounded-[4rem] border-t-8 border-[#FF7E05] text-center shadow-3xl">
-                <h2 class="text-4xl font-black mb-8">FATIADOR DE DADOS 🦾</h2>
-                <div id="dropzone" class="border-4 border-dashed border-white/10 rounded-[2.5rem] p-20 hover:border-[#FF7E05] cursor-pointer bg-black/10 transition-all group" onclick="document.getElementById('file-in').click()">
-                    <p class="text-4xl mb-4 group-hover:scale-110 transition-transform">📂</p>
-                    <p class="font-bold opacity-40 uppercase tracking-widest">Arraste seu arquivo CSV ou XLSX</p>
-                    <input type="file" id="file-in" class="hidden" accept=".csv, .xlsx" onchange="handleImport(event)">
-                </div>
-
-                <div id="lab-ui" class="mt-16 hidden space-y-10 animate-fade">
-                    <div id="col-list" class="flex flex-wrap justify-center gap-3 bg-black/20 p-6 rounded-2xl border border-white/5"></div>
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black opacity-40">Tamanho do Lote</label>
-                            <input type="number" id="b-size" value="5000" class="w-full bg-transparent border-b-2 border-white/10 p-4 text-2xl font-black text-[#FF7E05]">
+        <section id="mod2" class="py-40 px-6 step-locked">
+            <div class="max-w-5xl mx-auto text-left">
+                <h2 class="text-5xl font-black mb-10 leading-tight">Slicing: A Ciência do <span class="text-[#FF7E05]">Fatiamento.</span></h2>
+                <div class="grid md:grid-cols-2 gap-20 mb-20">
+                    <div class="space-y-6">
+                        <p class="text-xl opacity-70">O coração da nossa automação é o método <code>.iloc[]</code>. Ele não apenas lê o arquivo, ele navega por coordenadas exatas na memória.</p>
+                        <div class="content-card">
+                            <h4 class="font-bold mb-2">Por que 5000 linhas?</h4>
+                            <p class="text-sm opacity-60">Lotes de 5000 linhas são o equilíbrio ideal entre velocidade de processamento e estabilidade de conexão para os sistemas legados da Brisanet.</p>
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black opacity-40 uppercase tracking-widest">Extensão</label>
-                            <select id="b-fmt" class="w-full bg-transparent border-b-2 border-white/10 p-4 text-2xl font-black outline-none transition-all cursor-pointer">
-                                <option value="csv" class="bg-slate-800 text-white">CSV (SISTEMAS)</option>
-                                <option value="xlsx" class="bg-slate-800 text-white">XLSX (AUDITORIA)</option>
+                    </div>
+                    <div class="glass p-8 rounded-3xl border border-[#FF7E05]/20">
+                        <h4 class="text-[10px] font-black opacity-40 mb-4 uppercase tracking-widest">Sintaxe Python:</h4>
+                        <pre class="font-mono text-xs text-[#FF7E05] leading-loose">
+# i = ponto de partida
+# step = tamanho do bloco
+df.iloc[i : i + 5000]
+                        </pre>
+                        <p class="text-[10px] opacity-40 mt-4 italic">Esta lógica garante que o ponteiro de memória nunca sobrecarregue a estação de trabalho.</p>
+                    </div>
+                </div>
+                <button onclick="unlockMod(3)" class="btn-unibrisa px-16 py-5 rounded-full text-lg">Acessar Laboratório Operacional ➔</button>
+            </div>
+        </section>
+
+        <section id="mod3" class="py-40 px-6 step-locked">
+            <div class="max-w-6xl mx-auto glass p-12 md:p-24 rounded-[5rem] border-t-[12px] border-[#FF7E05] text-center shadow-3xl">
+                <h2 class="text-4xl font-black mb-8 uppercase">Automação de lotes🦾</h2>
+                <div id="dropzone" class="border-4 border-dashed border-white/10 rounded-[3rem] p-24 text-center hover:border-[#FF7E05] cursor-pointer bg-white/5 transition-all group" onclick="document.getElementById('f-in').click()">
+                    <div class="text-9xl mb-8 group-hover:scale-110 transition-transform">💎</div>
+                    <p class="text-2xl font-black opacity-30 tracking-widest uppercase">Importar Base de Produção</p>
+                    <input type="file" id="f-in" class="hidden" accept=".csv, .xlsx" onchange="processImport(event)">
+                </div>
+
+                <div id="lab-ui" class="mt-20 hidden space-y-12 anim">
+                    <div id="col-box" class="flex flex-wrap justify-center gap-4 bg-black/40 p-10 rounded-[2.5rem] border border-white/5"></div>
+                    <div class="grid md:grid-cols-3 gap-10 text-left">
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-black opacity-30 uppercase tracking-widest ml-4">Volume por Lote</label>
+                            <input type="number" id="b-size" value="5000" class="w-full bg-transparent border-b-4 border-white/5 p-5 text-4xl font-black text-[#FF7E05] outline-none">
+                        </div>
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-black opacity-30 uppercase tracking-widest ml-4">Formato de Saída</label>
+                            <select id="b-fmt" class="w-full bg-transparent border-b-4 border-white/5 p-5 text-2xl font-black outline-none transition-all">
+                                <option value="csv">CSV (SISTEMAS)</option>
+                                <option value="xlsx">XLSX (AUDITORIA)</option>
                             </select>
                         </div>
                         <div class="flex items-end">
-                            <button onclick="executeFatiamento()" class="btn-unibrisa w-full py-5 rounded-2xl text-xl shadow-2xl">EXECUTAR ENGINE</button>
+                            <button onclick="runEngine()" class="btn-unibrisa w-full py-7 rounded-[1.5rem] text-xl uppercase tracking-widest font-black">Processar ➔</button>
                         </div>
                     </div>
-                    <div id="lab-terminal" class="bg-black/80 p-6 rounded-2xl font-mono text-[10px] text-emerald-400 h-40 overflow-y-auto text-left shadow-inner"></div>
+                    <div id="lab-term" class="bg-black p-8 rounded-[2rem] font-mono text-xs text-emerald-400 h-52 overflow-y-auto border-4 border-white/5 shadow-inner text-left"></div>
                 </div>
             </div>
-            <div id="lab-actions" class="mt-12 hidden flex flex-wrap justify-center gap-6 animate-fade">
-                <button onclick="generateCert()" class="btn-unibrisa bg-emerald-600 px-12 py-5 rounded-full flex items-center gap-3">🎓 BAIXAR CERTIFICADO PDF</button>
-                <button onclick="unlock(4)" class="btn-unibrisa bg-slate-800 px-12 py-5 rounded-full">🧩 DESAFIO LÓGICO FINAL</button>
+            <div id="lab-final" class="mt-16 hidden flex flex-wrap justify-center gap-8 anim">
+                <button onclick="getCert()" class="btn-unibrisa bg-emerald-600 px-16 py-6 rounded-full flex items-center gap-4 text-lg">🎓 GERAR CERTIFICADO OFICIAL</button>
+                <button onclick="unlockMod(4)" class="btn-unibrisa bg-slate-800 px-16 py-6 rounded-full text-lg uppercase font-black">Desafio Lógico Final 🧩</button>
             </div>
         </section>
 
-        <section id="mod4" class="py-32 px-6 step-locked transition-all duration-1000">
-            <div class="max-w-6xl mx-auto glass p-12 md:p-20 rounded-[4rem] text-center shadow-3xl">
-                <h2 class="text-4xl font-black mb-4">QUAL A LOGICA CORRETA DA NOSSA AUTOMAÇÃO 🧩</h2>
-                <p class="text-[#FF7E05] font-black uppercase text-[10px] tracking-widest mb-12">Arraste os blocos de código para a sequência de execução lógica</p>
+        <section id="mod4" class="py-40 px-6 step-locked">
+            <div class="max-w-7xl mx-auto glass p-12 md:p-24 rounded-[5rem] border-4 border-white/5">
+                <div class="text-center mb-20">
+                    <h2 class="text-5xl font-black mb-6 uppercase tracking-tighter">Desafio <span class="text-[#FF7E05]">Final</span></h2>
+                    <p class="text-sm font-black text-[#FF7E05] uppercase tracking-[0.4em] opacity-80">Reconstrua a lógica ETL para validação da missão</p>
+                </div>
                 
-                <div class="grid lg:grid-cols-2 gap-16">
-                    <div class="bg-black/20 p-10 rounded-3xl border border-white/5">
-                        <div id="puzzle-source" class="flex flex-col gap-4">
+                <div class="grid lg:grid-cols-2 gap-20">
+                    <div class="bg-black/40 p-12 rounded-[3rem] border border-white/5 shadow-inner">
+                        <div id="p-box" class="flex flex-col gap-5">
                             <div class="piece" draggable="true" ondragstart="drag(event)" id="p1">df = pd.read_excel("base.xlsx")</div>
                             <div class="piece" draggable="true" ondragstart="drag(event)" id="p2">lote = df.iloc[i : i + 5000]</div>
                             <div class="piece" draggable="true" ondragstart="drag(event)" id="p3">for i in range(0, len(df), 5000):</div>
@@ -213,15 +231,16 @@ lote.to_csv(f"output_{i}.csv")
                         </div>
                     </div>
                     
-                    <div class="space-y-4">
-                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s1">1. Instanciação</div>
-                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s2">2. Carregamento</div>
-                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s3">3. Iteração</div>
-                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s4">4. Fatiamento</div>
-                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s5">5. Persistência</div>
-                        <div class="grid grid-cols-2 gap-4 mt-8">
-                            <button onclick="resetPuzzle()" class="bg-white/10 hover:bg-white/20 p-4 rounded-xl text-xs font-bold uppercase transition">Limpar Tudo</button>
-                            <button onclick="validatePuzzle()" class="btn-unibrisa p-4 rounded-xl text-xs font-bold uppercase">Validar Missão</button>
+                    <div class="space-y-5">
+                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s1" data-placeholder="01. Importação"></div>
+                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s2" data-placeholder="02. Leitura"></div>
+                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s3" data-placeholder="03. Iteração"></div>
+                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s4" data-placeholder="04. Slicing"></div>
+                        <div class="slot" ondrop="drop(event)" ondragover="allowDrop(event)" id="s5" data-placeholder="05. Exportação"></div>
+                        
+                        <div class="grid grid-cols-2 gap-5 mt-12">
+                            <button onclick="resetPuzzle()" class="bg-white/5 hover:bg-white/10 p-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition">Limpar Matriz</button>
+                            <button onclick="valPuzzle()" class="btn-unibrisa p-5 rounded-2xl text-[10px] font-black uppercase tracking-widest">Validar Script</button>
                         </div>
                     </div>
                 </div>
@@ -234,172 +253,159 @@ lote.to_csv(f"output_{i}.csv")
         <p class="text-[8px] text-[#888888]/50 max-w-2xl mx-auto uppercase leading-loose">AVISO LEGAL: Este conteúdo é propriedade intelectual exclusiva da BRISANET SERVIÇOS DE TELECOMUNICAÇÕES S.A. É proibida a reprodução, alteração, venda ou distribuição total ou parcial sem autorização prévia por escrito. Programa Multiplicadores do conhecimento 2026.</p>
     </footer>
 
-    <script>
-        let userFull = ""; let currentIdx = 0; let userScore = 0; let activeFile = [];
 
-        // HUD SYSTEM
-        function showHUD(title, text, icon = "🚀") {
-            const hud = document.getElementById('hud-msg');
-            document.getElementById('hud-title').innerText = title;
-            document.getElementById('hud-text').innerText = text;
-            document.getElementById('hud-icon').innerText = icon;
-            hud.classList.add('show');
-            setTimeout(() => hud.classList.remove('show'), 5000);
+    <script>
+        let userName = ""; let qIdx = 0; let qScore = 0; let activeDb = [];
+
+        function showHUD(t, m, i = "🚀") {
+            const h = document.getElementById('hud-msg');
+            document.getElementById('hud-title').innerText = t;
+            document.getElementById('hud-text').innerText = m;
+            document.getElementById('hud-icon').innerText = i;
+            h.classList.add('show');
+            setTimeout(() => h.classList.remove('show'), 4500);
         }
 
-        // THEME
         function toggleTheme() { document.body.classList.toggle('dark-mode'); document.body.classList.toggle('light-mode'); }
 
-        // INITIALIZATION
-        function initTraining() {
-            userFull = document.getElementById('user-name').value.trim().toUpperCase();
-            if(userFull.length < 5) return showHUD("ERRO", "Insira seu nome completo para registro oficial.", "❌");
-            
+        function startMission() {
+            userName = document.getElementById('user-name').value.trim().toUpperCase();
+            if(userName.length < 5) return showHUD("ERRO", "Nome completo exigido para emissão do certificado.", "⚠️");
             document.getElementById('hero').classList.add('hidden');
             document.getElementById('quiz-area').classList.remove('hidden');
-            showHUD("BEM-VINDO", `Iniciando diagnóstico para ${userFull.split(' ')[0]}`, "👤");
-            loadQuestion();
+            showHUD("SISTEMA", "Iniciando diagnóstico profundo...", "👤");
+            loadQ();
         }
 
-        // QUIZ ENGINE
-        const questions = [
-            {q: "Qual biblioteca é o motor de dados do Python?", o: ["Numpy", "Django", "Pandas", "Scraping"], a: 2},
-            {q: "O comando .iloc[0:5000] serve para quê?", o: ["Pular colunas", "Fatiar lotes de linhas", "Somar valores", "Limpar Excel"], a: 1},
-            {q: "Como instalamos pacotes externos na Brisa?", o: ["python add", "pip install", "get library", "install-pkg"], a: 1},
-            {q: "Qual a principal vantagem da automação?", o: ["Velocidade e Auditabilidade", "Cores mais bonitas", "Uso de mouse", "Lentidão"], a: 0},
-            {q: "A extensão ideal para bases massivas é?", o: [".doc", ".xlsx", ".csv", ".txt"], a: 2}
+        const quiz = [
+            {q: "O que é ETL no contexto de dados?", o: ["Extrair, Tratar, Ler", "Extrair, Transformar, Carregar", "Elevar, Testar, Listar", "Nenhuma das anteriores"], a: 1},
+            {q: "Por que lotes de 5000 linhas são recomendados?", o: ["Estabilidade de memória", "Regra de cores", "Facilidade de mouse", "É o limite do Windows"], a: 0},
+            {q: "Qual biblioteca permite traduzir XML do Excel para Python?", o: ["OpenPyXL", "Numpy", "Pandas", "Matplotlib"], a: 0},
+            {q: "O que faz o método .iloc[]?", o: ["Soma colunas", "Seleciona por índice", "Deleta linhas", "Traduz para inglês"], a: 1},
+            {q: "Como instalamos as dependências em projetos Python?", o: ["Painel de Controle", "PIP via terminal", "E-mail do TI", "Loja de Apps"], a: 1}
         ];
 
-        function loadQuestion() {
-            const q = questions[currentIdx];
-            document.getElementById('q-label').innerText = `Questão ${currentIdx + 1} de 5`;
+        function loadQ() {
+            const q = quiz[qIdx];
+            document.getElementById('q-idx').innerText = `QUESTÃO 0${qIdx+1} / 05`;
             document.getElementById('q-text').innerText = q.q;
-            const optCont = document.getElementById('q-options'); optCont.innerHTML = "";
+            const c = document.getElementById('q-options'); c.innerHTML = "";
             q.o.forEach((o, i) => {
-                optCont.innerHTML += `<button onclick="handleAns(${i})" class="glass p-6 rounded-2xl text-left font-bold hover:bg-[#FF7E05] hover:text-white transition-all q-btn" id="q-${i}">${o}</button>`;
+                c.innerHTML += `<button onclick="chkAns(${i})" class="glass p-7 rounded-2xl text-left font-black hover:bg-[#FF7E05] hover:text-white transition-all q-opt" id="opt-${i}">${o}</button>`;
             });
         }
 
-        function handleAns(i) {
-            const correct = questions[currentIdx].a;
-            document.querySelectorAll('.q-btn').forEach(b => b.disabled = true);
-            if(i === correct) {
-                document.getElementById(`q-${i}`).classList.add('bg-emerald-600', 'text-white');
-                userScore++;
-                document.getElementById('q-score').innerText = `Acertos: ${userScore}`;
+        function chkAns(i) {
+            const cor = quiz[qIdx].a;
+            document.querySelectorAll('.q-opt').forEach(b => b.disabled = true);
+            if(i === cor) {
+                document.getElementById(`opt-${i}`).classList.add('bg-emerald-600', 'text-white');
+                qScore++; document.getElementById('q-score').innerText = `PONTUAÇÃO: ${qScore < 10 ? '0'+qScore : qScore}`;
+                showHUD("CORRETO", "Conceito validado.", "✅");
             } else {
-                document.getElementById(`q-${i}`).classList.add('bg-red-600', 'text-white');
-                document.getElementById(`q-${correct}`).classList.add('bg-emerald-600', 'text-white');
+                document.getElementById(`opt-${i}`).classList.add('bg-red-600', 'text-white');
+                document.getElementById(`opt-${cor}`).classList.add('bg-emerald-600', 'text-white');
+                showHUD("REVISAR", "Consulte os fundamentos técnicos.", "❌");
             }
             document.getElementById('q-next').classList.remove('hidden');
         }
 
         function nextQuestion() {
-            currentIdx++; document.getElementById('q-next').classList.add('hidden');
-            if(currentIdx < 5) loadQuestion();
+            qIdx++; document.getElementById('q-next').classList.add('hidden');
+            if(qIdx < 5) loadQ();
             else {
                 document.getElementById('quiz-area').classList.add('hidden');
-                document.getElementById('content-flow').classList.remove('hidden');
-                document.getElementById('badge-logic').classList.add('opacity-100');
-                showHUD("CONCLUÍDO", `Diagnóstico finalizado. Nível: ${userScore >= 4 ? 'Sênior' : 'Iniciante'}`, "⭐");
+                document.getElementById('main-flow').classList.remove('hidden');
+                document.getElementById('b1').classList.remove('opacity-10', 'grayscale');
+                showHUD("MISSÃO", "Módulos de Engenharia liberados.", "🔓");
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
-        function unlock(id) {
+        function unlockMod(id) {
             const m = document.getElementById(`mod${id}`);
             m.classList.remove('step-locked');
-            if(id === 3) document.getElementById('badge-data').classList.add('opacity-100');
-            window.scrollTo({ top: m.offsetTop - 80, behavior: 'smooth' });
+            if(id === 1) document.getElementById('b2').classList.remove('opacity-10', 'grayscale');
+            window.scrollTo({ top: m.offsetTop - 100, behavior: 'smooth' });
         }
 
-        // DATA LAB
-        function handleImport(e) {
+        function processImport(e) {
             const f = e.target.files[0];
             const r = new FileReader();
             r.onload = (ev) => {
-                const workbook = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
-                activeFile = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                const wb = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
+                activeDb = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                 document.getElementById('lab-ui').classList.remove('hidden');
-                logMsg(`Arquivo "${f.name}" carregado. ${activeFile.length} registros detectados.`);
-                const cols = Object.keys(activeFile[0]);
-                const list = document.getElementById('col-list'); list.innerHTML = "";
+                logL(`Engine: Arquivo "${f.name}" mapeado. Registros: ${activeDb.length}`);
+                const cols = Object.keys(activeDb[0]);
+                const box = document.getElementById('col-box'); box.innerHTML = "";
                 cols.forEach(c => {
-                    list.innerHTML += `<label class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full text-[9px] font-bold"><input type="checkbox" value="${c}" checked class="accent-[#FF7E05]"> ${c}</label>`;
+                    box.innerHTML += `<label class="flex items-center gap-3 bg-white/5 px-5 py-2 rounded-full text-[10px] font-black border border-white/5"><input type="checkbox" value="${c}" checked class="accent-[#FF7E05]"> ${c}</label>`;
                 });
             }; r.readAsArrayBuffer(f);
         }
 
-        function logMsg(m) {
-            const t = document.getElementById('lab-terminal');
-            t.innerHTML += `<p class="mb-1">> [CONSOLE]: ${m}</p>`;
+        function logL(m) {
+            const t = document.getElementById('lab-term');
+            t.innerHTML += `<p class="mb-2">> [SYSTEM]: ${m}</p>`;
             t.scrollTop = t.scrollHeight;
         }
 
-        async function executeFatiamento() {
+        async function runEngine() {
             const size = parseInt(document.getElementById('b-size').value);
-            const format = document.getElementById('b-fmt').value;
+            const fmt = document.getElementById('b-fmt').value;
             const zip = new JSZip();
-            logMsg(`Iniciando fatiamento em lotes de ${size} linhas...`);
-            
-            for (let i = 0; i < activeFile.length; i += size) {
-                const chunk = activeFile.slice(i, i + size);
-                const ws = XLSX.utils.json_to_sheet(chunk);
-                zip.file(`unibrisa_batch_${(i/size)+1}.${format}`, XLSX.utils.sheet_to_csv(ws));
-                logMsg(`Lote ${Math.floor(i/size)+1} gerado.`);
+            logL(`Iniciando fatiamento massivo de ${size} linhas...`);
+            for (let i = 0; i < activeDb.length; i += size) {
+                const ws = XLSX.utils.json_to_sheet(activeDb.slice(i, i + size));
+                zip.file(`lote_unibrisa_${(i/size)+1}.${fmt}`, XLSX.utils.sheet_to_csv(ws));
+                logL(`✓ Lote ${Math.floor(i/size)+1} gerado em memória.`);
             }
-            saveAs(await zip.generateAsync({type:"blob"}), "MDC_EXPORT_UNIBRISA.zip");
-            document.getElementById('lab-actions').classList.remove('hidden');
-            showHUD("SUCESSO", "Fatiamento concluído com segurança operacional.", "💾");
+            saveAs(await zip.generateAsync({type:"blob"}), "UNIBRISA_EXPORT.zip");
+            document.getElementById('lab-final').classList.remove('hidden');
+            showHUD("SUCESSO", "Processamento ETL concluído.", "💾");
         }
 
-        // PDF CERTIFICATE
-        function generateCert() {
+        function getCert() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
             doc.setFillColor(242, 242, 242); doc.rect(0, 0, 297, 210, 'F');
-            doc.setDrawColor(34, 66, 212); doc.setLineWidth(2); doc.line(0, 20, 110, 20); doc.circle(115, 20, 5);
-            doc.setDrawColor(255, 126, 5); doc.line(0, 35, 90, 35); doc.circle(95, 35, 5);
-            
+            doc.setDrawColor(34, 66, 212); doc.setLineWidth(2); doc.line(0, 25, 110, 25); doc.circle(115, 25, 5);
+            doc.setDrawColor(255, 126, 5); doc.line(0, 40, 90, 40); doc.circle(95, 40, 5);
             try {
                 doc.addImage("IMAGENS/image-removebg-preview (3).png", 'PNG', 20, 175, 45, 18);
                 doc.addImage("IMAGENS/image-removebg-preview (1).png", 'PNG', 232, 175, 45, 18);
-            } catch(e) { console.log("Logos não encontradas localmente"); }
-
-            doc.setTextColor(34, 66, 212); doc.setFontSize(40); doc.setFont('helvetica', 'bold');
-            doc.text("CERTIFICADO DE CONCLUSÃO", 148, 75, null, null, 'center');
+            } catch(e) { }
+            doc.setTextColor(34, 66, 212); doc.setFontSize(38); doc.setFont('helvetica', 'bold');
+            doc.text("CERTIFICADO DE CONCLUSÃO", 148, 70, null, null, 'center');
             doc.setTextColor(100, 100, 100); doc.setFontSize(22); doc.setFont('helvetica', 'normal');
-            doc.text("Certificamos que", 148, 100, null, null, 'center');
-            doc.setTextColor(0, 0, 0); doc.setFontSize(32); doc.text(userFull, 148, 120, null, null, 'center');
-            doc.setTextColor(100, 100, 100); doc.setFontSize(14);
-            const msg = "Python para Sustentação:Automatizando Tarefas Repetitivas,\ncom carga horária de 12 horas.\nEmitido em: " + new Date().toLocaleDateString();
-            doc.text(msg, 148, 145, null, null, 'center');
-            doc.save(`UNIBRISA_MDC_${userFull.split(' ')[0]}.pdf`);
+            doc.text("Certificamos que", 148, 95, null, null, 'center');
+            doc.setTextColor(0, 0, 0); doc.setFontSize(32); doc.text(userName, 148, 120, null, null, 'center');
+            const msg = "concluiu o treinamento Python para Sustentação, AUTOMATIZANDO TAREFAS REPETITIVAS,\ncom carga horária de 4 Horas.\nEmitido: " + new Date().toLocaleDateString();
+            doc.setTextColor(100, 100, 100); doc.setFontSize(14); doc.text(msg, 148, 145, null, null, 'center');
+            doc.save(`CERTIFICADO_UNIBRISA_${userName.split(' ')[0]}.pdf`);
         }
 
-        // PUZZLE LOGIC
-        function allowDrop(ev) { ev.preventDefault(); }
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
-        function drop(ev) {
-            ev.preventDefault(); const data = ev.dataTransfer.getData("text");
-            if(ev.target.classList.contains('slot')) { ev.target.innerHTML = ""; ev.target.appendChild(document.getElementById(data)); }
+        function allowDrop(e) { e.preventDefault(); }
+        function drag(e) { e.dataTransfer.setData("text", e.target.id); }
+        function drop(e) {
+            e.preventDefault(); const d = e.dataTransfer.getData("text");
+            if(e.target.classList.contains('slot') && e.target.children.length === 0) { 
+                e.target.appendChild(document.getElementById(d)); 
+            }
         }
         function resetPuzzle() {
-            const source = document.getElementById('puzzle-source');
-            const slots = document.querySelectorAll('.slot');
-            slots.forEach((s, i) => {
-                if(s.children.length > 0) source.appendChild(s.children[0]);
-                s.innerText = `${i + 1}. FASE`;
-            });
+            const box = document.getElementById('p-box');
+            document.querySelectorAll('.slot').forEach(s => { if(s.children.length > 0) box.appendChild(s.children[0]); });
         }
-        function validatePuzzle() {
-            const order = ["p5", "p1", "p3", "p2", "p4"];
-            const current = [document.getElementById('s1').children[0]?.id, document.getElementById('s2').children[0]?.id, document.getElementById('s3').children[0]?.id, document.getElementById('s4').children[0]?.id, document.getElementById('s5').children[0]?.id];
-            if(JSON.stringify(order) === JSON.stringify(current)) {
-                showHUD("MISSÃO CUMPRIDA", "Algoritmo validado. Você é um Mestre em Automação!", "🏆");
-                document.getElementById('badge-pro').classList.add('opacity-100');
+        function valPuzzle() {
+            const ord = ["p5", "p1", "p3", "p2", "p4"];
+            const cur = [document.getElementById('s1').children[0]?.id, document.getElementById('s2').children[0]?.id, document.getElementById('s3').children[0]?.id, document.getElementById('s4').children[0]?.id, document.getElementById('s5').children[0]?.id];
+            if(JSON.stringify(ord) === JSON.stringify(cur)) {
+                showHUD("MESTRE", "Lógica ETL validada com sucesso!", "🏆");
+                document.getElementById('b3').classList.remove('opacity-10', 'grayscale');
             } else {
-                showHUD("ERRO LÓGICO", "A sequência do script está incorreta. Tente novamente.", "⚠️");
+                showHUD("FALHA", "Sequência lógica incorreta.", "⚠️");
             }
         }
     </script>
